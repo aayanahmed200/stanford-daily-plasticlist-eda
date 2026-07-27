@@ -1,0 +1,345 @@
+---
+title: "Plastic in the Pantry"
+subtitle: "An exploratory look at PlasticList's chemical testing data, with a stop at Stanford Dining"
+author: "Your Name"
+date: today
+format:
+  html:
+    toc: true
+    toc-location: left
+    code-fold: true
+    code-summary: "Show code"
+    theme: cosmo
+    embed-resources: true
+    fig-align: center
+    fig-width: 7.5
+    fig-height: 5
+execute:
+  warning: false
+  echo: true
+jupyter: python3
+---
+
+## Introduction
+
+[PlasticList](https://www.plasticlist.org/) is a Bay Area group that spent a year buying
+hundreds of food and beverage products — from grocery chains, fast food restaurants, coffee
+shops, and a handful of Stanford dining locations — and sending them to an accredited lab to be
+tested for phthalates and bisphenols, two families of chemicals used to make plastics soft or
+hard that have been linked to endocrine disruption. Most products were tested in triplicate
+(three separately purchased or prepared samples of the same item), which turns out to matter a
+lot for how confidently anything in this dataset can be interpreted.
+
+The organization has been upfront that this was a volunteer-run project with a modest sample
+size and no peer review, and that no single measurement should be read as a verdict on a
+product. This writeup tries to hold onto that framing throughout: the goal is to describe
+patterns in the data, not to rank foods by safety or make health claims.
+
+The data and cleaning step below are exactly as provided for this assignment. We work with the
+`_ng_serving` columns — the absolute mass of each chemical, in nanograms, in a typical serving of
+the product — rather than the toxicity-equivalent or percentile-transformed columns.
+
+```{python}
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+
+mpl.rcParams['font.size'] = 11
+mpl.rcParams['axes.spines.top'] = False
+mpl.rcParams['axes.spines.right'] = False
+mpl.rcParams['figure.dpi'] = 130
+
+RED, BLUE, GRAY = '#B83A4B', '#4C6E91', '#9AA0A6'
+
+# The assignment sources this file from
+# https://jaygupta797.github.io/slides/datasci/plastic.tsv -- a copy is
+# bundled in data/plastic.tsv so this notebook renders without depending on
+# that URL staying up.
+df = pd.read_csv("data/plastic.tsv", sep="\t")
+
+keep = df.columns.str.endswith('_ng_serving')
+keep *= ~df.columns.str.contains('equivalent')
+keep *= ~df.columns.str.contains('percentile')
+drop = ~keep
+
+X = df.iloc[:, keep]
+X = X.apply(
+    lambda x: pd.to_numeric(x.str.extract(r'(\d+)')[0], errors='coerce')
+)
+
+print(f"{df.shape[0]} samples, {df['product'].nunique()} unique products, "
+      f"{X.shape[1]} chemicals measured")
+```
+
+One thing worth flagging immediately: the lab reports concentrations below its limit of
+quantification (LOQ) as strings like `"<3550"`, meaning "somewhere between zero and 3,550." The
+digit-extraction regex above pulls out `3550` and treats it as a real measurement. That's a
+reasonable simplification for a first pass, but it means every non-detect gets silently
+recorded as if the chemical were present *at* the detection threshold, which inflates both the
+apparent detection rate and the apparent concentration for anything that wasn't actually found.
+We'll keep this in mind, especially for chemicals that are mostly non-detects.
+
+We also pull in a few metadata columns — product name, tags, and where each sample was
+collected — so we can group and label the chemical measurements.
+
+```{python}
+raw = df.iloc[:, keep]
+nondetect_mask = raw.apply(lambda s: s.astype(str).str.startswith('<'))
+
+meta = df[['product', 'tags', 'collected_at', 'collected_on', 'product_id']].copy()
+meta['is_vintage'] = df['tags'].fillna('').str.contains('vintage')
+meta['is_stanford'] = df['collected_at'].fillna('').str.contains('Stanford')
+
+data = pd.concat([meta, X], axis=1)
+
+# A handful of products are 1950s/60s military ration samples PlasticList tested
+# as a curiosity. They aren't representative of today's food supply, so we set
+# them aside for the "current day" comparisons and come back to them separately.
+current = data[~data['is_vintage']].copy()
+```
+
+## How often were these chemicals actually found?
+
+Eighteen chemicals were tested for, but most food science stories about "plastic chemicals in
+food" are really stories about one or two chemicals, because the rest are barely ever detected
+above the lab's reporting threshold.
+
+```{python}
+#| label: fig-nondetect
+#| fig-cap: "Detection rates across the 18 chemicals tested"
+
+nondetect = nondetect_mask.mean().sort_values() * 100
+nondetect.index = nondetect.index.str.replace('_ng_serving', '')
+
+fig, ax = plt.subplots(figsize=(7.5, 5.5))
+colors = [RED if v > 50 else BLUE for v in nondetect.values]
+ax.barh(nondetect.index, nondetect.values, color=colors)
+ax.set_xlabel('% of samples below the limit of quantification')
+ax.set_title('Most tested chemicals were rarely detected')
+ax.axvline(50, color=GRAY, lw=0.8, ls='--')
+plt.tight_layout()
+plt.show()
+```
+
+DEHP and DEHT are the only two chemicals detected in a majority of samples (roughly 59% and 58%
+of samples respectively cleared the LOQ). Everything else — including bisphenol A, the most
+famous name on this list — was undetected in 85–100% of samples tested. Three chemicals (DINP,
+DNHP, DIDA) were never detected above the LOQ at all. Given that, the rest of this analysis
+focuses mostly on **DEHP**, the most commonly used plasticizer and the chemical with the most
+usable signal in this dataset.
+
+## Which foods had the highest DEHP levels?
+
+```{python}
+#| label: fig-top15
+#| fig-cap: "The 15 current-day products with the highest average DEHP per serving"
+
+top15 = (current.groupby('product')
+         .agg(DEHP_ng_serving=('DEHP_ng_serving', 'mean'),
+              is_stanford=('is_stanford', 'max'))
+         .sort_values('DEHP_ng_serving', ascending=False)
+         .head(15))
+
+fig, ax = plt.subplots(figsize=(7.5, 6))
+colors = [RED if v else BLUE for v in top15['is_stanford']]
+ax.barh(top15.index[::-1], top15['DEHP_ng_serving'].values[::-1], color=colors[::-1])
+ax.set_xlabel('DEHP (ng per serving), averaged across replicates')
+ax.set_title('Products with the highest measured DEHP levels')
+plt.tight_layout()
+plt.show()
+```
+
+Protein bars, a grass-fed ribeye, and a run of fast-casual entrees top the list. Stanford's
+dining hall meal (highlighted in red) lands in 11th place among 236 current-day products — its
+average DEHP reading of about 12,000 ng/serving puts it in roughly the **94th percentile** of
+everything tested, ahead of a Chipotle burrito and a Whopper with cheese, though behind the
+RXBAR bars and a Shake Shack cheeseburger.
+
+::: {.callout-note}
+Before drawing conclusions from that ranking, keep reading — the section on replicate
+variability below shows why an 11th-place finish out of 236 shouldn't be treated as precise.
+:::
+
+We excluded one category from this chart on purpose. PlasticList also tested a small batch of
+1950s–60s military ration items as a curiosity, and one of them — powdered milk from 1952 Korean
+War rations — came back with a DEHP reading of roughly **1.5 million ng/serving**, more than 50
+times higher than anything else in the dataset. Whether that reflects seven decades of
+packaging degradation, a counterfeit product, or a lab artifact is genuinely unclear, and
+PlasticList says as much in their own writeup. It's a fun data point, but not a useful comparison
+for a 2026 grocery run, so it's excluded from the "current day" figures throughout.
+
+## Does food category predict contamination?
+
+```{python}
+#| label: fig-category
+#| fig-cap: "DEHP levels by food category (log scale)"
+
+tag_priority = ['baby_food', 'fast_food', 'meat', 'dairy', 'produce', 'coffee',
+                 'sodas', 'bottled_water', 'tap_water', 'supplements', 'snacks']
+
+def assign_category(tags):
+    if pd.isna(tags):
+        return 'other'
+    tagset = set(t.strip() for t in tags.split(','))
+    for t in tag_priority:
+        if t in tagset:
+            return t
+    return 'other'
+
+current['category'] = df.loc[current.index, 'tags'].apply(assign_category)
+plot_df = current[(current['category'] != 'other') & (current['DEHP_ng_serving'] > 0)]
+order = plot_df.groupby('category')['DEHP_ng_serving'].median().sort_values(ascending=False).index
+
+fig, ax = plt.subplots(figsize=(8, 5.5))
+box_data = [plot_df.loc[plot_df['category'] == c, 'DEHP_ng_serving'].values for c in order]
+bp = ax.boxplot(box_data, vert=False, tick_labels=order, patch_artist=True,
+                 flierprops=dict(marker='o', markersize=3, alpha=0.4))
+for patch in bp['boxes']:
+    patch.set_facecolor(BLUE)
+    patch.set_alpha(0.6)
+ax.set_xscale('log')
+ax.set_xlabel('DEHP (ng per serving, log scale)')
+ax.set_title('DEHP levels by food category')
+plt.tight_layout()
+plt.show()
+```
+
+Snack bars and fast food sit at the top; produce, supplements, and meat sit at the bottom. That
+ordering roughly matches what PlasticList itself reported: less-processed foods (produce, meat,
+water) tend to show less frequent and lower-magnitude contamination than heavily processed items
+that pass through more equipment and packaging on the way to a plate. It's a plausible story —
+more processing steps mean more contact surfaces — but this dataset can only show the
+association, not confirm that processing itself is the cause.
+
+## Tap water vs. bottled water
+
+Water testing was one of PlasticList's more closely watched threads, since it's something almost
+everyone drinks daily.
+
+```{python}
+#| label: fig-water
+#| fig-cap: "Tap water vs. bottled water"
+
+water = current[current['category'].isin(['tap_water', 'bottled_water'])]
+
+fig, ax = plt.subplots(figsize=(6.5, 4.5))
+water_data = [water.loc[water['category'] == c, 'DEHP_ng_serving'].values
+              for c in ['tap_water', 'bottled_water']]
+bp = ax.boxplot(water_data, vert=False, tick_labels=['Tap water', 'Bottled water'],
+                 patch_artist=True, flierprops=dict(marker='o', markersize=3, alpha=0.4))
+for patch, c in zip(bp['boxes'], [BLUE, RED]):
+    patch.set_facecolor(c)
+    patch.set_alpha(0.6)
+ax.set_xlabel('DEHP (ng per serving)')
+ax.set_title('Tap water vs. bottled water')
+plt.tight_layout()
+plt.show()
+
+print(water.groupby('category')['DEHP_ng_serving'].median())
+```
+
+Both categories land on the exact same median value — which is a tell, not a coincidence. The
+median for both groups is sitting right at the LOQ, meaning more than half of both tap and
+bottled samples were non-detects that got assigned the same threshold value during cleaning.
+This is a case where the data genuinely can't distinguish tap from bottled water on DEHP alone;
+saying more would require the finer-grained detection information that got collapsed away by the
+`_ng_serving` cleaning step.
+
+## How much do repeat tests of the same product agree?
+
+This is the section that most directly explains why PlasticList — and this writeup — avoid
+strong claims about individual products. Most products were tested three times, and those
+replicates don't always land close together.
+
+```{python}
+#| label: fig-cv
+#| fig-cap: "Replicate-to-replicate variability in DEHP measurements"
+
+counts = current.groupby('product')['DEHP_ng_serving'].count()
+multi = counts[counts >= 3].index
+rep = current[current['product'].isin(multi)].groupby('product')['DEHP_ng_serving'].agg(['mean', 'std'])
+rep['cv_pct'] = rep['std'] / rep['mean'] * 100
+rep = rep.dropna()
+
+fig, ax = plt.subplots(figsize=(7.5, 4.5))
+ax.hist(rep['cv_pct'], bins=25, color=BLUE, edgecolor='white')
+ax.axvline(rep['cv_pct'].median(), color=RED, ls='--', lw=1.2,
+           label=f"median = {rep['cv_pct'].median():.0f}%")
+ax.set_xlabel('Coefficient of variation across replicates (%)')
+ax.set_ylabel('Number of products')
+ax.set_title('Same product, same day, different results')
+ax.legend()
+plt.tight_layout()
+plt.show()
+
+print(f"n = {len(rep)} products with 3+ replicates")
+print(f"median CV: {rep['cv_pct'].median():.1f}%, mean CV: {rep['cv_pct'].mean():.1f}%")
+```
+
+For a typical product, replicate measurements differ from each other by about 13% (the median
+coefficient of variation). But the distribution has a long right tail: for roughly a tenth of
+products, replicates disagreed by more than 60%, and for a few — a boneless ribeye steak, a bag
+of 1952 crackers, a can of tuna — replicate readings varied by more than the average value
+itself. Stanford's dining meal is a good concrete example: its three replicates measured 10,428,
+10,902, and 14,694 ng of DEHP, a swing of about 40% around the mean. A "94th percentile" ranking
+for that meal is real, but it comes with real uncertainty attached, and a different set of three
+samples on a different day might well rank differently.
+
+## A closer look at Stanford Dining
+
+Four samples in this dataset were collected from Arrillaga Family Dining Commons on campus: one
+water sample and three replicates of a beans-chicken-rice-cauliflower meal, all collected on the
+same day.
+
+```{python}
+#| label: tbl-stanford
+
+stanford_cols = ['product', 'collected_on', 'DEHP_ng_serving', 'BPA_ng_serving']
+data.loc[data['is_stanford'], stanford_cols].reset_index(drop=True)
+```
+
+The dining hall water sample came back below the limit of quantification for DEHP, consistent
+with the pattern seen in tap and bottled water more broadly. The meal is the more interesting
+data point: it averaged about 12,000 ng of DEHP per serving, placing it in the 94th percentile of
+all current-day items tested and higher than several fast food comparisons, including a
+Chipotle burrito and a Whopper with cheese. It's worth being precise about what that does and
+doesn't mean. This is one meal, tested on one day, at one dining hall, out of the dozens Stanford
+operates — it says nothing about other dining halls, other meals, or how consistent this
+particular meal is over time. Given the replicate variability shown above, even this single meal
+carries a real margin of error. It's a data point worth Stanford Dining's attention, not a
+verdict on campus food safety.
+
+## Limitations
+
+A few caveats apply to everything above, echoing PlasticList's own framing of this data:
+
+- **Small samples, no peer review.** Most products were tested three times; some chemicals were
+  tested with methods that weren't independently validated the way an academic study's would be.
+- **Non-detects are approximated, not zero.** As noted above, values below the LOQ are recorded
+  as the LOQ itself, which biases both detection rates and average concentrations upward for
+  rarely-detected chemicals.
+- **A snapshot, not a trend.** Almost everything here was collected within a short window in
+  2024; it says nothing about whether levels are rising, falling, or seasonal.
+- **Association, not mechanism.** The category patterns (processed vs. less-processed foods) are
+  descriptive. This dataset can't tell us why the pattern exists.
+- **ng/serving isn't a health verdict.** Nothing here is compared against a regulatory or
+  toxicological safety threshold — those columns existed in the original data but were
+  intentionally excluded by the cleaning step used for this assignment.
+
+## Takeaways
+
+DEHP is the only chemical in this dataset with enough detections to say much about; everything
+else was too sparsely detected to support real conclusions. Among foods that were detected,
+processed and fast foods tend to run higher than produce, meat, or water — a pattern that matches
+PlasticList's own published findings. Stanford's tested dining hall meal sits toward the high end
+of that distribution, which is a legitimate thing to point out, but the same data that produces
+that finding also shows just how much a single meal's measurement can move between three
+identically prepared samples. That tension — a real, reportable pattern sitting on top of
+genuinely noisy measurements — is the throughline of this dataset, and probably the most honest
+takeaway to leave a reader with.
+
+------------------------------------------------------------------------------------------------
+
+*Data: [PlasticList](https://www.plasticlist.org/), accessed via the course-provided mirror.
+Analysis and code in this repository are independent of PlasticList and Stanford University.*
