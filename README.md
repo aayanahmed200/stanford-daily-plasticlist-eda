@@ -1,4 +1,4 @@
-# plasticlist-eda
+# PlasticList EDA
 
 Exploratory analysis of [PlasticList](https://www.plasticlist.org/)'s food chemical testing
 data, done for a data journalism assignment at the Stanford Daily. The dataset covers 618 lab
@@ -42,7 +42,7 @@ quarto render analysis.qmd
 This renders `analysis.qmd` to `analysis.html`. [Quarto](https://quarto.org/) needs to be
 installed separately (`quarto --version` to check).
 
-## Repository structure
+## Repository Structure
 
 ```
 .
@@ -54,7 +54,7 @@ installed separately (`quarto --version` to check).
 └── README.md
 ```
 
-## Findings, briefly
+## Key Findings
 
 - Of the 18 chemicals tested, only DEHP and DEHT were detected above the lab's limit of
   quantification in a majority of samples — most of the rest were non-detects 85-100% of the
