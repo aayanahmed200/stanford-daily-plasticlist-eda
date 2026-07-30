@@ -1,36 +1,37 @@
 # PlasticList EDA
 
-Exploratory analysis of [PlasticList](https://www.plasticlist.org/)'s food chemical testing
-data, done for a data journalism assignment at the Stanford Daily. The dataset covers 618 lab
-samples across 236 Bay Area food and beverage products tested for phthalates and bisphenols,
-including several items collected from Stanford dining halls.
+Exploratory analysis of [PlasticList](https://www.plasticlist.org/)'s food chemical testing data, done for a data journalism assignment at the Stanford Daily. The dataset covers 618 lab samples across 236 Bay Area food and beverage products tested for phthalates and bisphenols, including a few items collected from Stanford dining halls.
 
 Full writeup: [`analysis.html`](analysis.html) (rendered from [`analysis.qmd`](analysis.qmd))
 
-## About
+## Why this exists
 
-PlasticList bought hundreds of products from Bay Area grocery stores, fast food chains, coffee
-shops, and a few Stanford dining locations, and sent them to a lab to be tested for plastic-
-associated chemicals. This project works through the resulting dataset to see what patterns hold
-up, where the data is too sparse to say much, and how a couple of Stanford dining hall samples
-compare to everything else that was tested.
+PlasticList bought hundreds of products from Bay Area grocery stores, fast food chains, coffee shops, and a few Stanford dining locations, then sent them to a lab to be tested for plastic-associated chemicals. I wanted to work through the resulting dataset myself and see what patterns actually hold up, where the data is too sparse to say much, and how the Stanford dining hall samples compare to everything else that was tested.
 
-The PlasticList team is explicit that their sample sizes are small and their results shouldn't be
-read as a verdict on any single product. This analysis tries to hold onto that caution throughout
-rather than overstate what 1-3 lab samples per product can support.
+PlasticList is upfront that their sample sizes are small and their results shouldn't be read as a verdict on any single product. This analysis tries to hold onto that caution throughout instead of overstating what 1-3 lab samples per product can support.
 
-## Data
+## The data
 
-The raw dataset is a TSV of 618 samples with columns for the product, where and when it was
-collected, and measured concentrations (in ng/serving, ng/g, and a few normalized forms) for 18
-phthalates and bisphenols. A copy is included at [`data/plastic.tsv`](data/plastic.tsv) so the
-analysis doesn't depend on an external URL staying available; the original assignment source is:
+The raw dataset is a TSV of 618 samples with columns for the product, where and when it was collected, and measured concentrations (in ng/serving, ng/g, and a few normalized forms) for 18 phthalates and bisphenols. A copy is included at [`data/plastic.tsv`](data/plastic.tsv) so the analysis doesn't depend on an external URL staying available; the original assignment source is `https://jaygupta797.github.io/slides/datasci/plastic.tsv`.
 
-```
-https://jaygupta797.github.io/slides/datasci/plastic.tsv
-```
+One quirk that shapes a lot of the analysis: concentrations below the lab's limit of quantification are recorded as strings like `"<3550"` rather than left blank. `analysis.qmd` treats that as a real measurement during cleaning, which inflates both detection rates and average concentrations for anything that's mostly non-detects - this is why the writeup spends real time on which chemicals are even worth analyzing individually.
 
-## Setup
+## Key findings
+
+- Of the 18 chemicals tested, only DEHP and DEHT were detected above the lab's limit of quantification in a majority of samples - most of the rest were non-detects 85-100% of the time, which limits how much this dataset can say about them individually.
+- Processed and fast foods tended to show higher DEHP levels than less-processed items like produce, meat, and water, consistent with patterns PlasticList reported in their own writeup.
+- A Stanford dining hall meal (beans, chicken, rice, and cauliflower from Arrillaga) averaged about 12,000 ng of DEHP per serving across three samples, in the 94th percentile of all current-day products tested here - though its replicate range overlaps with some of the fast-food items it's compared against, so that ranking is closer than a single number suggests.
+- Replicate measurements of the same product disagreed by a median of about 13%, and by 40%+ for some products, including the Stanford meal itself. That noise tends to concentrate at low DEHP concentrations rather than high ones, which is a useful sanity check on the top-15 rankings.
+
+See the full writeup for context, caveats, and how each figure was produced.
+
+## Tech stack
+
+- Python (pandas, numpy, matplotlib)
+- Quarto for rendering the notebook to HTML
+- Jupyter as the execution engine
+
+## Getting started
 
 ```bash
 git clone https://github.com/aayanahmed20/plasticlist-eda.git
@@ -39,40 +40,15 @@ pip install -r requirements.txt
 quarto render analysis.qmd
 ```
 
-This renders `analysis.qmd` to `analysis.html`. [Quarto](https://quarto.org/) needs to be
-installed separately (`quarto --version` to check).
+This renders `analysis.qmd` to `analysis.html`. [Quarto](https://quarto.org/) needs to be installed separately (`quarto --version` to check).
 
-## Repository Structure
+## Project structure
 
-```
-.
-├── analysis.qmd        # main notebook: data cleaning, EDA, figures, writeup
-├── analysis.html        # rendered output
-├── data/
-│   └── plastic.tsv      # PlasticList dataset (as provided for the assignment)
-├── requirements.txt
-└── README.md
-```
-
-## Key Findings
-
-- Of the 18 chemicals tested, only DEHP and DEHT were detected above the lab's limit of
-  quantification in a majority of samples — most of the rest were non-detects 85-100% of the
-  time, which limits how much this dataset can say about them individually.
-- Processed and fast foods tended to show higher DEHP levels than less-processed items like
-  produce, meat, and water, consistent with patterns PlasticList reported in their own writeup.
-- A Stanford dining hall meal (beans, chicken, rice, and cauliflower from Arrillaga) averaged
-  about 12,000 ng of DEHP per serving across three samples, in the 94th percentile of all
-  current-day products tested here.
-- That said, replicate measurements of the same product disagreed by a median of about 13%, and
-  by 40%+ for some products, including the Stanford meal itself — a reminder that any single
-  ranking in this dataset comes with real measurement noise attached.
-
-See the full writeup for context, caveats, and how each figure was produced.
+- `analysis.qmd` - main notebook: data cleaning, EDA, figures, writeup
+- `analysis.html` - rendered output
+- `data/plastic.tsv` - PlasticList dataset (as provided for the assignment)
+- `requirements.txt`
 
 ## Limitations
 
-This is a class exploratory-analysis exercise, not a scientific study. Sample sizes are small,
-non-detect values are approximated rather than treated as unknown, and the data covers a short
-window in 2024 rather than a trend over time. See the "Limitations" section of the writeup for
-the full list.
+This is a class exploratory-analysis exercise, not a scientific study. Sample sizes are small, non-detect values are approximated rather than treated as unknown, and the data covers a short window in 2024 rather than a trend over time. See the "Limitations" section of the writeup for the full list.

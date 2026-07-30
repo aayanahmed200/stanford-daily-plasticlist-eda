@@ -1,7 +1,7 @@
 ---
 title: "Plastic in the Pantry"
 subtitle: "An exploratory look at PlasticList's chemical testing data, with a stop at Stanford Dining"
-author: "Your Name"
+author: "Aayan Ahmed"
 date: today
 format:
   html:
@@ -133,19 +133,39 @@ usable signal in this dataset.
 
 ```{python}
 #| label: fig-top15
-#| fig-cap: "The 15 current-day products with the highest average DEHP per serving"
+#| fig-cap: "The 15 current-day products with the highest average DEHP per serving, with min-max replicate range where available"
 
 top15 = (current.groupby('product')
-         .agg(DEHP_ng_serving=('DEHP_ng_serving', 'mean'),
+         .agg(DEHP_mean=('DEHP_ng_serving', 'mean'),
+              DEHP_min=('DEHP_ng_serving', 'min'),
+              DEHP_max=('DEHP_ng_serving', 'max'),
+              n=('DEHP_ng_serving', 'count'),
               is_stanford=('is_stanford', 'max'))
-         .sort_values('DEHP_ng_serving', ascending=False)
-         .head(15))
+         .sort_values('DEHP_mean', ascending=False)
+         .head(15)
+         .sort_values('DEHP_mean'))  # ascending so the highest bar ends up on top
 
 fig, ax = plt.subplots(figsize=(7.5, 6))
 colors = [RED if v else BLUE for v in top15['is_stanford']]
-ax.barh(top15.index[::-1], top15['DEHP_ng_serving'].values[::-1], color=colors[::-1])
-ax.set_xlabel('DEHP (ng per serving), averaged across replicates')
+ax.barh(top15.index, top15['DEHP_mean'], color=colors, zorder=2)
+
+has_reps = top15['n'] > 1
+xerr = [
+    (top15['DEHP_mean'] - top15['DEHP_min']).clip(lower=0)[has_reps],
+    (top15['DEHP_max'] - top15['DEHP_mean']).clip(lower=0)[has_reps],
+]
+ax.errorbar(top15.loc[has_reps, 'DEHP_mean'], top15.index[has_reps],
+            xerr=xerr, fmt='none', ecolor='black', elinewidth=1.1, capsize=3, zorder=3)
+
+# products tested only once can't show a range, so flag them instead of
+# letting a missing error bar read as "no uncertainty"
+for label in top15.index[~has_reps]:
+    ax.text(top15.loc[label, 'DEHP_mean'] * 1.02, label, 'n=1', va='center',
+            fontsize=8, color=GRAY)
+
+ax.set_xlabel('DEHP (ng/serving); black lines show min-max range across replicates')
 ax.set_title('Products with the highest measured DEHP levels')
+ax.set_xlim(right=ax.get_xlim()[1] * 1.05)
 plt.tight_layout()
 plt.show()
 ```
@@ -156,10 +176,73 @@ average DEHP reading of about 12,000 ng/serving puts it in roughly the **94th pe
 everything tested, ahead of a Chipotle burrito and a Whopper with cheese, though behind the
 RXBAR bars and a Shake Shack cheeseburger.
 
+The black lines are the more honest part of this chart. Where a bar has one, it's the min-max
+spread across that product's replicates, and several of them are wide enough to bump into the
+neighboring bar. Where a bar has no line — the top two entries and the Chipotle burrito — that's
+not because the reading is more solid, it's because the product was only tested once, so there's
+nothing to compare it against.
+
 ::: {.callout-note}
 Before drawing conclusions from that ranking, keep reading — the section on replicate
 variability below shows why an 11th-place finish out of 236 shouldn't be treated as precise.
 :::
+
+### Do the "ahead of X, behind Y" comparisons hold up?
+
+The ranking above is a single mean per product, which hides exactly how much the specific
+comparisons in that paragraph can move around. Pulling out just the items named — Stanford's
+meal, the two items it beats, and the items that beat it — makes that easier to see directly.
+
+```{python}
+#| label: fig-comparisons
+#| fig-cap: "Mean DEHP and replicate range for Stanford's meal and the fast-food items it's compared against"
+
+comparison_products = [
+    'Stanford University Dining Meal (Beans, Chicken, Rice, Cauliflower)',
+    'Chipotle Burrito with Red Beans Veggies Chicken and Sour Cream',
+    'Burger King Whopper with Cheese',
+    'RXBAR 12g Protein Bar Strawberry',
+    'RXBAR 12g Protein Bar Blueberry',
+    'RXBAR 10g Protein Bar Blueberry Cashew Butter',
+    'Shake Shack Cheeseburger',
+]
+
+comp = (current[current['product'].isin(comparison_products)]
+        .groupby('product')['DEHP_ng_serving']
+        .agg(DEHP_mean='mean', DEHP_min='min', DEHP_max='max', n='count')
+        .loc[comparison_products]
+        .sort_values('DEHP_mean'))
+comp['is_stanford'] = comp.index.str.startswith('Stanford')
+
+fig, ax = plt.subplots(figsize=(7.5, 4.5))
+has_reps = comp['n'] > 1
+xerr = [
+    (comp['DEHP_mean'] - comp['DEHP_min']).clip(lower=0)[has_reps],
+    (comp['DEHP_max'] - comp['DEHP_mean']).clip(lower=0)[has_reps],
+]
+ax.errorbar(comp.loc[has_reps, 'DEHP_mean'], comp.index[has_reps],
+            xerr=xerr, fmt='none', ecolor=GRAY, elinewidth=2, capsize=4, zorder=1)
+colors = [RED if v else BLUE for v in comp['is_stanford']]
+ax.scatter(comp['DEHP_mean'], comp.index, color=colors, s=90, zorder=2)
+
+for label in comp.index[~has_reps]:
+    ax.text(comp.loc[label, 'DEHP_mean'], label, '  single sample',
+            va='center', fontsize=8, color=GRAY)
+
+ax.set_xlabel('DEHP (ng per serving); gray lines show min-max across replicates')
+ax.set_title('Stanford vs. the fast-food comparisons')
+plt.tight_layout()
+plt.show()
+```
+
+Two things stand out. First, the replicate ranges for Stanford's meal and the Whopper actually
+overlap — Stanford's low replicate (10,428 ng) sits below the Whopper's high replicate
+(11,376 ng) — so "Stanford ahead of the Whopper" is a real pattern but a close one, not a clean
+separation. Second, Chipotle and one of the three RXBAR flavors were each tested only once,
+meaning the "ahead of Chipotle, behind RXBAR" framing rests partly on comparisons that have no
+replicate check behind them at all — those single readings could plausibly land anywhere in the
+same range the *other* products' replicates show. The comparisons hold up directionally, but the
+margins are narrower than a one-line ranking suggests.
 
 We excluded one category from this chart on purpose. PlasticList also tested a small batch of
 1950s–60s military ration items as a curiosity, and one of them — powdered milk from 1952 Korean
@@ -285,6 +368,42 @@ itself. Stanford's dining meal is a good concrete example: its three replicates 
 10,902, and 14,694 ng of DEHP, a swing of about 40% around the mean. A "94th percentile" ranking
 for that meal is real, but it comes with real uncertainty attached, and a different set of three
 samples on a different day might well rank differently.
+
+That raises a natural follow-up: is the noise related to how much DEHP a product has in the
+first place, or is it scattered evenly across low- and high-concentration products alike?
+
+```{python}
+#| label: fig-cv-vs-mean
+#| fig-cap: "Replicate variability against concentration, for products with 3+ replicates"
+
+fig, ax = plt.subplots(figsize=(7.5, 5))
+rep_join = rep.join(current.groupby('product')['is_stanford'].max())
+colors = [RED if v else BLUE for v in rep_join['is_stanford']]
+sizes = [45 if v else 20 for v in rep_join['is_stanford']]
+alphas = [0.9 if v else 0.45 for v in rep_join['is_stanford']]
+for x, y, c, s, a in zip(rep_join['mean'], rep_join['cv_pct'], colors, sizes, alphas):
+    ax.scatter(x, y, color=c, s=s, alpha=a, edgecolor='none')
+
+stanford_row = rep_join[rep_join['is_stanford']]
+if len(stanford_row):
+    ax.annotate('Stanford meal', (stanford_row['mean'].iloc[0], stanford_row['cv_pct'].iloc[0]),
+                textcoords='offset points', xytext=(8, 6), fontsize=9, color=RED)
+
+ax.set_xscale('log')
+ax.set_xlabel('Mean DEHP per product (ng/serving, log scale)')
+ax.set_ylabel('Coefficient of variation across replicates (%)')
+ax.set_title('Noisier at low concentrations, not at high ones')
+plt.tight_layout()
+plt.show()
+```
+
+There's a loose downward slope here: products with very low average DEHP tend to show the widest
+relative swings between replicates, while products with high average DEHP (including Stanford's
+meal, marked in red) cluster toward lower relative variability. That's consistent with how
+non-detect handling works — a product hovering near the LOQ can have one replicate detected and
+one not, which produces a huge percentage swing on a small base — and it's a useful sanity check
+for the rankings above: the high-DEHP items driving the "top 15" list aren't the noisiest part of
+this dataset, even though several of them still carry a meaningful range.
 
 ## A closer look at Stanford Dining
 
