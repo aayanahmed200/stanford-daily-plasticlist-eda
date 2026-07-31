@@ -1,4 +1,4 @@
-# PlasticList EDA
+# Stanford Daily PlasticList EDA
 
 Exploratory analysis of [PlasticList](https://www.plasticlist.org/)'s food chemical testing data, done for a data journalism assignment at the Stanford Daily. The dataset covers 618 lab samples across 236 Bay Area food and beverage products tested for phthalates and bisphenols, including a few items collected from Stanford dining halls.
 
