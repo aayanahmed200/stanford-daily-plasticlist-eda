@@ -31,17 +31,6 @@ See the full writeup for context, caveats, and how each figure was produced.
 - Quarto for rendering the notebook to HTML
 - Jupyter as the execution engine
 
-## Getting started
-
-```bash
-git clone https://github.com/aayanahmed20/plasticlist-eda.git
-cd plasticlist-eda
-pip install -r requirements.txt
-quarto render analysis.qmd
-```
-
-This renders `analysis.qmd` to `analysis.html`. [Quarto](https://quarto.org/) needs to be installed separately (`quarto --version` to check).
-
 ## Project structure
 
 - `analysis.qmd` - main notebook: data cleaning, EDA, figures, writeup
