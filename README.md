@@ -1,4 +1,4 @@
-# Stanford Daily PlasticList EDA
+# Stanford Daily: PlasticList EDA
 
 [![Python](https://img.shields.io/badge/python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![Jupyter](https://img.shields.io/badge/jupyter-F37626?style=for-the-badge&logo=jupyter&logoColor=white)](https://jupyter.org/)
