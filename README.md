@@ -1,7 +1,7 @@
 # Stanford Daily PlasticList EDA
 
-![Python](https://img.shields.io/badge/python-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![Jupyter](https://img.shields.io/badge/jupyter-F37626?style=for-the-badge&logo=jupyter&logoColor=white)
+[![Python](https://img.shields.io/badge/python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![Jupyter](https://img.shields.io/badge/jupyter-F37626?style=for-the-badge&logo=jupyter&logoColor=white)](https://jupyter.org/)
 
 Exploratory analysis of [PlasticList](https://www.plasticlist.org/)'s food chemical testing data, done for a data journalism assignment at the Stanford Daily. The dataset covers 618 lab samples across 236 Bay Area food and beverage products tested for phthalates and bisphenols, including a few items collected from Stanford dining halls.
 
