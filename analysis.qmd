@@ -65,7 +65,7 @@ drop = ~keep
 
 X = df.iloc[:, keep]
 X = X.apply(
-    lambda x: pd.to_numeric(x.str.extract(r'(\d+)')[0], errors='coerce')
+    lambda x: pd.to_numeric(x.str.extract(r'(\d+\.?\d*)')[0], errors='coerce')
 )
 
 print(f"{df.shape[0]} samples, {df['product'].nunique()} unique products, "
@@ -171,7 +171,7 @@ plt.show()
 ```
 
 Protein bars, a grass-fed ribeye, and a run of fast-casual entrees top the list. Stanford's
-dining hall meal (highlighted in red) lands in 11th place among 236 current-day products — its
+dining hall meal (highlighted in red) lands in 11th place among 226 current-day products — its
 average DEHP reading of about 12,000 ng/serving puts it in roughly the **94th percentile** of
 everything tested, ahead of a Chipotle burrito and a Whopper with cheese, though behind the
 RXBAR bars and a Shake Shack cheeseburger.
@@ -184,7 +184,7 @@ nothing to compare it against.
 
 ::: {.callout-note}
 Before drawing conclusions from that ranking, keep reading — the section on replicate
-variability below shows why an 11th-place finish out of 236 shouldn't be treated as precise.
+variability below shows why an 11th-place finish out of 226 shouldn't be treated as precise.
 :::
 
 ### Do the "ahead of X, behind Y" comparisons hold up?

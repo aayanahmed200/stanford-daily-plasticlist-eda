@@ -41,6 +41,17 @@ See the full writeup for context, caveats, and how each figure was produced.
 - `data/plastic.tsv` - PlasticList dataset (as provided for the assignment)
 - `requirements.txt`
 
+## Setup
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+quarto render analysis.qmd
+```
+
+Needs [Quarto](https://quarto.org/) installed separately (native installer, `brew install quarto`, or `pip install quarto-cli`) to render `analysis.qmd` to `analysis.html`.
+
 ## Limitations
 
 This is a class exploratory-analysis exercise, not a scientific study. Sample sizes are small, non-detect values are approximated rather than treated as unknown, and the data covers a short window in 2024 rather than a trend over time. See the "Limitations" section of the writeup for the full list.
