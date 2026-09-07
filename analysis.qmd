@@ -41,7 +41,6 @@ the product — rather than the toxicity-equivalent or percentile-transformed co
 
 ```{python}
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
@@ -61,7 +60,6 @@ df = pd.read_csv("data/plastic.tsv", sep="\t")
 keep = df.columns.str.endswith('_ng_serving')
 keep *= ~df.columns.str.contains('equivalent')
 keep *= ~df.columns.str.contains('percentile')
-drop = ~keep
 
 X = df.iloc[:, keep]
 X = X.apply(
@@ -93,9 +91,11 @@ meta['is_stanford'] = df['collected_at'].fillna('').str.contains('Stanford')
 
 data = pd.concat([meta, X], axis=1)
 
-# A handful of products are 1950s/60s military ration samples PlasticList tested
-# as a curiosity. They aren't representative of today's food supply, so we set
-# them aside for the "current day" comparisons and come back to them separately.
+# A handful of products are vintage items PlasticList tested as a curiosity --
+# mostly 1950s/60s military rations, plus a few older grocery and household
+# products from as far back as the 1920s. They aren't representative of
+# today's food supply, so we set them aside for the "current day" comparisons
+# and come back to them separately.
 current = data[~data['is_vintage']].copy()
 ```
 
@@ -174,9 +174,9 @@ plt.show()
 
 Protein bars, a grass-fed ribeye, and a run of fast-casual entrees top the list. Stanford's
 dining hall meal (highlighted in red) lands in 11th place among 226 current-day products — its
-average DEHP reading of about 12,000 ng/serving puts it in roughly the **94th percentile** of
-everything tested, ahead of a Chipotle burrito and a Whopper with cheese, though behind the
-RXBAR bars and a Shake Shack cheeseburger.
+average DEHP reading of about 12,000 ng/serving puts it in roughly the **95th percentile** of
+everything tested — just behind a Chipotle burrito, ahead of a Whopper with cheese, and behind
+the RXBAR bars and a Shake Shack cheeseburger.
 
 The black lines are the more honest part of this chart. Where a bar has one, it's the min-max
 spread across that product's replicates, and several of them are wide enough to bump into the
@@ -241,18 +241,23 @@ Two things stand out. First, the replicate ranges for Stanford's meal and the Wh
 overlap — Stanford's low replicate (10,428 ng) sits below the Whopper's high replicate
 (11,376 ng) — so "Stanford ahead of the Whopper" is a real pattern but a close one, not a clean
 separation. Second, Chipotle and one of the three RXBAR flavors were each tested only once,
-meaning the "ahead of Chipotle, behind RXBAR" framing rests partly on comparisons that have no
-replicate check behind them at all — those single readings could plausibly land anywhere in the
-same range the *other* products' replicates show. The comparisons hold up directionally, but the
-margins are narrower than a one-line ranking suggests.
+meaning the comparisons against them rest partly on single readings with no replicate check
+behind them at all — those single readings could plausibly land anywhere in the same range the
+*other* products' replicates show. That matters most for the Chipotle comparison: Stanford's
+mean sits only about 6% below Chipotle's one reading (12,749 ng), close enough that a different
+Chipotle sample could easily have landed on either side of it. The comparisons hold up
+directionally, but the margins are narrower than a one-line ranking suggests.
 
 We excluded one category from this chart on purpose. PlasticList also tested a small batch of
-1950s–60s military ration items as a curiosity, and one of them — powdered milk from 1952 Korean
-War rations — came back with a DEHP reading of roughly **1.5 million ng/serving**, more than 50
-times higher than anything else in the dataset. Whether that reflects seven decades of
-packaging degradation, a counterfeit product, or a lab artifact is genuinely unclear, and
-PlasticList says as much in their own writeup. It's a fun data point, but not a useful comparison
-for a 2026 grocery run, so it's excluded from the "current day" figures throughout.
+vintage items as a curiosity — mostly 1950s–60s military rations, plus a few older grocery and
+household products from as far back as the 1920s — and one of them, powdered milk from 1952
+Korean War rations, came back with a DEHP reading of roughly **1.5 million ng/serving**: about 23
+times higher than the next-highest reading anywhere in the dataset (a 1952 cracker sample, also
+from the vintage batch) and nearly 50 times higher than the highest current-day product. Whether
+that reflects seven decades of packaging degradation, a counterfeit product, or a lab artifact is
+genuinely unclear, and PlasticList says as much in their own writeup. It's a fun data point, but
+not a useful comparison for a 2026 grocery run, so it's excluded from the "current day" figures
+throughout.
 
 ## Does food category predict contamination?
 
@@ -291,11 +296,16 @@ plt.show()
 ```
 
 Snack bars and fast food sit at the top; produce, supplements, and meat sit at the bottom. That
-ordering roughly matches what PlasticList itself reported: less-processed foods (produce, meat,
-water) tend to show less frequent and lower-magnitude contamination than heavily processed items
-that pass through more equipment and packaging on the way to a plate. It's a plausible story —
-more processing steps mean more contact surfaces — but this dataset can only show the
-association, not confirm that processing itself is the cause.
+ordering roughly matches what PlasticList itself reported: less-processed foods like produce and
+meat tend to show less frequent and lower-magnitude contamination than heavily processed items
+that pass through more equipment and packaging on the way to a plate. Water doesn't fit that
+story here, though — both tap and bottled water actually land in the middle of this ordering,
+above produce, meat, and supplements. As the next section shows, that's most likely the
+LOQ-substitution artifact at work (most water samples are non-detects assigned the same
+threshold value) rather than a real contamination signal, so water shouldn't be read as either
+confirming or breaking the "less-processed means less contamination" pattern. For the solid
+foods, it's a plausible story — more processing steps mean more contact surfaces — but this
+dataset can only show the association, not confirm that processing itself is the cause.
 
 ## Tap water vs. bottled water
 
@@ -364,12 +374,13 @@ print(f"median CV: {rep['cv_pct'].median():.1f}%, mean CV: {rep['cv_pct'].mean()
 
 For a typical product, replicate measurements differ from each other by about 13% (the median
 coefficient of variation). But the distribution has a long right tail: for roughly a tenth of
-products, replicates disagreed by more than 60%, and for a few — a boneless ribeye steak, a bag
-of 1952 crackers, a can of tuna — replicate readings varied by more than the average value
-itself. Stanford's dining meal is a good concrete example: its three replicates measured 10,428,
-10,902, and 14,694 ng of DEHP, a swing of about 40% around the mean. A "94th percentile" ranking
-for that meal is real, but it comes with real uncertainty attached, and a different set of three
-samples on a different day might well rank differently.
+products, replicates disagreed by more than 60%, and for one — a boneless ribeye steak —
+replicate readings varied by more than the average value itself; a couple of others, including a
+canned tuna product, came close without quite crossing that line. Stanford's dining meal is a
+good concrete example: its three replicates measured 10,428, 10,902, and 14,694 ng of DEHP, a
+swing of about 36% around the mean. A "95th percentile" ranking for that meal is real, but it
+comes with real uncertainty attached, and a different set of three samples on a different day
+might well rank differently.
 
 That raises a natural follow-up: is the noise related to how much DEHP a product has in the
 first place, or is it scattered evenly across low- and high-concentration products alike?
@@ -410,8 +421,9 @@ this dataset, even though several of them still carry a meaningful range.
 ## A closer look at Stanford Dining
 
 Four samples in this dataset were collected from Arrillaga Family Dining Commons on campus: one
-water sample and three replicates of a beans-chicken-rice-cauliflower meal, all collected on the
-same day.
+water sample and three replicates of a beans-chicken-rice-cauliflower meal. The three meal
+replicates were all collected on the same day; the water sample's collection date wasn't
+recorded, so it can't be confirmed to be from that same visit.
 
 ```{python}
 #| label: tbl-stanford
@@ -422,9 +434,10 @@ data.loc[data['is_stanford'], stanford_cols].reset_index(drop=True)
 
 The dining hall water sample came back below the limit of quantification for DEHP, consistent
 with the pattern seen in tap and bottled water more broadly. The meal is the more interesting
-data point: it averaged about 12,000 ng of DEHP per serving, placing it in the 94th percentile of
+data point: it averaged about 12,000 ng of DEHP per serving, placing it in the 95th percentile of
 all current-day items tested and higher than several fast food comparisons, including a
-Chipotle burrito and a Whopper with cheese. It's worth being precise about what that does and
+Whopper with cheese — though it narrowly trails a Chipotle burrito, one of the closest
+comparisons in the dataset. It's worth being precise about what that does and
 doesn't mean. This is one meal, tested on one day, at one dining hall, out of the dozens Stanford
 operates — it says nothing about other dining halls, other meals, or how consistent this
 particular meal is over time. Given the replicate variability shown above, even this single meal
