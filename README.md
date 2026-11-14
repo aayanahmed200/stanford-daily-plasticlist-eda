@@ -19,7 +19,7 @@ The analysis examines measured phthalates and bisphenols, compares product group
 
 ## Data and methodology
 
-The included TSV contains 618 samples with product, collection, and concentration fields for 18 chemicals. Values below the lab's quantification limit appear as strings such as `<3550>`; the notebook's treatment of these values affects calculated detection rates and averages and should be considered when interpreting results.
+The included TSV contains 618 samples with product, collection, and concentration fields for 18 chemicals. Values below the lab's quantification limit appear as strings such as `<3550`; the notebook's treatment of these values affects calculated detection rates and averages and should be considered when interpreting results.
 
 ## Technology
 
