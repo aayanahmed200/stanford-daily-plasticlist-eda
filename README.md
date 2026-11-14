@@ -32,9 +32,6 @@ quarto render analysis.qmd
 
 Quarto must be installed separately to render the source notebook to HTML.
 
-## Notes and limitations
-
-This is exploratory analysis, not a scientific study. The included TSV contains 618 samples and concentration fields for 18 chemicals. Values below the lab's quantification limit affect detection rates and averages. Sample sizes are small, and repeat counts can change percentile estimates. The results should not be used as a verdict on an individual product. The underlying data belongs to [PlasticList](https://www.plasticlist.org/) and is subject to its terms.
 
 ## License
 
