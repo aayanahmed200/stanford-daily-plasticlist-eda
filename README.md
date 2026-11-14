@@ -15,6 +15,7 @@ The analysis examines measured phthalates and bisphenols, compares product group
 - DEHP and DEHT were detected above the lab's quantification limit in a majority of samples.
 - Most other measured chemicals were non-detects in 85–100% of samples.
 - Processed and fast foods tended to show higher DEHP measurements than less-processed groups in this dataset.
+- A Stanford dining-hall meal averaged about 12,000 ng of DEHP per serving across three samples.
 - Repeat measurements had a median difference of about 13%; some products differed by 40% or more.
 
 ## Technology
