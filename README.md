@@ -1,42 +1,39 @@
-# Stanford Daily: PlasticList EDA
+# PlasticList Data Analysis
 
-[![Python](https://img.shields.io/badge/python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/) [![Jupyter](https://img.shields.io/badge/jupyter-F37626?style=for-the-badge&logo=jupyter&logoColor=white)](https://jupyter.org/)
+An exploratory analysis of PlasticList's laboratory measurements for chemicals in food and drink products, including samples collected at Stanford dining locations.
 
-Exploratory analysis of 618 PlasticList lab samples across 236 Bay Area food and beverage products, including samples from Stanford dining locations.
-
-**[Full write-up](analysis.html)**
+**[Read the rendered analysis](analysis.html)**
 
 ## Overview
 
-The analysis examines measured phthalates and bisphenols, compares product groups, and checks how repeat samples from the same product vary.
+The Quarto report examines 618 samples covering 236 food and beverage products. It looks at measured phthalates and bisphenols, compares product groups, and checks how repeat samples of the same product vary. The analysis uses the absolute nanograms-per-serving columns in the supplied dataset.
 
-## Highlights
+## Repository contents
 
-- DEHP and DEHT were detected above the lab's quantification limit in a majority of samples.
-- Most other measured chemicals were non-detects in 85–100% of samples.
-- Processed and fast foods tended to show higher DEHP measurements than less-processed groups in this dataset.
-- A Stanford dining-hall meal averaged about 12,000 ng of DEHP per serving across three samples.
-- Repeat measurements had a median difference of about 13%; some products differed by 40% or more.
+- `analysis.qmd` — source document, code and narrative.
+- `analysis.html` — rendered report.
+- `data/plastic.tsv` — the dataset used by the analysis.
+- `requirements.txt` — Python dependencies.
 
 ## Technology
 
-Python, pandas, NumPy, matplotlib, Quarto, and Jupyter.
+Python, pandas, NumPy, matplotlib, Jupyter and Quarto. Install the packages from `requirements.txt`; install [Quarto](https://quarto.org/) separately to render the report.
 
 ## Run locally
 
 ```bash
-python3 -m venv .venv
+python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 quarto render analysis.qmd
 ```
 
-Quarto must be installed separately to render the source notebook to HTML.
+The source data is included in `data/plastic.tsv`, so the analysis does not need to download it again. Open `analysis.html` to read the checked-in report without rendering it.
 
-## Notes and limitations
+## Scope and limitations
 
-The findings describe the 618 samples in this dataset, not every product or serving. The analysis is observational and should not be treated as a direct measure of an individual's exposure or health risk.
+This is an exploratory analysis of the samples in the supplied dataset, not a representative survey of all products or servings. The notebook notes that values reported below the laboratory's limit of quantification are converted to the stated threshold for parts of the analysis; this simplification can overstate apparent detections and measured amounts for non-detects. The results do not establish personal exposure or the health risk of any product.
 
 ## License
 
-MIT — see `LICENSE`.
+MIT. See [LICENSE](LICENSE).
