@@ -36,4 +36,4 @@ This is an exploratory analysis of the samples in the supplied dataset, not a re
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for the full text.
