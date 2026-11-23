@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plastic in the Pantry — Stanford Daily data analysis</title>
+<meta name="description" content="An exploratory look at PlasticList's chemical testing data across 618 samples and 236 Bay Area food and beverage products, including a Stanford Dining meal.">
+<link rel="canonical" href="https://aayanahmed200.github.io/stanford-daily-plasticlist-eda/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Plastic in the Pantry">
+<meta property="og:description" content="What 618 lab samples of Bay Area food and drink measured, and what a Stanford dining-hall meal adds up to.">
+<meta property="og:url" content="https://aayanahmed200.github.io/stanford-daily-plasticlist-eda/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="series.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap masthead__inner">
+    <a class="masthead__series" href="https://github.com/aayanahmed200">Stanford Daily · Data</a>
+    <nav class="masthead__nav" aria-label="Series">
+      <a href="https://aayanahmed200.github.io/stanford-daily-price-of-prestige/">The Price of Prestige</a>
+      <a href="./" aria-current="page">PlasticList</a>
+      <a href="https://aayanahmed200.github.io/stanford-daily-blotter-fiction/">Blotter fiction</a>
+      <a href="https://aayanahmed200.github.io/stanford-daily-biglocal-ice-pipeline/">ICE pipeline</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap report">
+  <p class="kicker">Data analysis</p>
+  <h1>Plastic in the Pantry</h1>
+  <p class="standfirst">An exploratory look at PlasticList's chemical testing data, with a stop at Stanford Dining.</p>
+  <p class="byline">Aayan Ahmed · 618 lab samples · 236 products · Bay Area, 2024</p>
+
+  <div class="stats">
+    <div class="stats__item">
+      <span class="stats__value">618</span>
+      <span class="stats__label">samples tested for phthalates and bisphenols</span>
+    </div>
+    <div class="stats__item">
+      <span class="stats__value">236</span>
+      <span class="stats__label">food and beverage products covered</span>
+    </div>
+    <div class="stats__item">
+      <span class="stats__value">~12,000 ng</span>
+      <span class="stats__label">DEHP in an average Stanford dining-hall meal, across three samples</span>
+    </div>
+    <div class="stats__item">
+      <span class="stats__value">13%</span>
+      <span class="stats__label">median difference between repeat samples of the same product</span>
+    </div>
+  </div>
+
+  <div class="prose">
+    <p>PlasticList tested food and drink bought around the Bay Area for chemicals that migrate out of packaging: phthalates such as DEHP and its common substitute DEHT, and bisphenols such as BPA and BPS. This analysis asks three questions of that data. Which chemicals actually showed up, and how often? Do processed foods carry more than less-processed ones? And how much does a single measurement tell you, given that the same product tested twice rarely gives the same number?</p>
+
+    <p>DEHP and DEHT were detected above the lab's quantification limit in a majority of samples, while most of the other measured chemicals were non-detects in 85–100% of them. Within this dataset, processed and fast foods tended to show higher DEHP measurements than less-processed groups. A Stanford dining-hall meal averaged about 12,000 ng of DEHP per serving across three samples.</p>
+
+    <p>The repeat samples are the least dramatic result and the most important one for reading everything else. Median difference between two samples of the same product was about 13%, and some products differed by 40% or more. A single number for a product is an estimate with real spread around it, not a fixed property of that product.</p>
+
+    <p>The full write-up carries the code, the figures, and the group-by-group comparisons, and is set up so any number in it can be traced back to the filtering that produced it.</p>
+  </div>
+
+  <div class="actions">
+    <a class="button" href="analysis.html">Read the full analysis</a>
+    <a class="button button--ghost" href="https://github.com/aayanahmed200/stanford-daily-plasticlist-eda">Code and data</a>
+  </div>
+
+  <div class="aside">
+    <p><strong>About the data.</strong> The 618 samples come from PlasticList's public testing dataset. Measurements describe these samples, not every product or serving of it, and they are not a measurement of any individual's exposure or health risk.</p>
+    <p>Analysis and page by Aayan Ahmed for the Stanford Daily Tech Bootcamp. Source notebook: <code>analysis.qmd</code>; rendered report: <code>analysis.html</code>.</p>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap site-footer__inner">
+    <span>Stanford Daily Tech Bootcamp · data journalism</span>
+    <span><a href="https://github.com/aayanahmed200/stanford-daily-plasticlist-eda">Repository</a> · <a href="https://github.com/TheStanfordDaily/tech-practicum">Practicum</a></span>
+  </div>
+</footer>
+
+</body>
+</html>
