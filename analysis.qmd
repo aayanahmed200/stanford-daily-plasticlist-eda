@@ -14,6 +14,61 @@ format:
     fig-align: center
     fig-width: 7.5
     fig-height: 5
+    include-in-header:
+      - text: |
+          <!-- Keeps the rendered notebook on the series paper, ink and figure
+               treatment. The same block is inlined in the committed
+               analysis.html, which this YAML regenerates. -->
+          <style>
+          body.quarto-light {
+            background: #fbfaf8;
+            color: #1c1a17;
+            font-family: "Source Sans 3", "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          }
+          #quarto-document-content { color: #1c1a17; }
+          #quarto-document-content a { color: #8c1515; }
+          #TOC a { color: #8c1515; }
+          #TOC a:hover, #TOC a.active { color: #6b1010; }
+
+          /* Charts were rendered wider than the text column and spilled past
+             its right edge, picking up a scrollbar. Cap them at the column and
+             give them the same card as the series figures. */
+          #quarto-document-content img,
+          #quarto-document-content svg,
+          #quarto-document-content iframe,
+          #quarto-document-content figure,
+          #quarto-document-content .quarto-figure {
+            max-width: 100%;
+            height: auto;
+          }
+          #quarto-document-content figure img,
+          #quarto-document-content .cell-output-display img {
+            display: block;
+            width: 100%;
+            height: auto;
+            border: 1px solid #e4ded4;
+            border-radius: 10px;
+            background: #ffffff;
+          }
+          #quarto-document-content figcaption,
+          #quarto-document-content .figure-caption,
+          #quarto-document-content .quarto-float-caption {
+            font-family: "Source Sans 3", "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 0.84rem;
+            color: #6b6560;
+            text-align: left;
+            padding-top: 10px;
+            line-height: 1.5;
+          }
+          #quarto-document-content .cell-output-display { overflow-x: auto; }
+          #quarto-document-content table { max-width: 100%; }
+          #quarto-document-content thead th {
+            font-size: 0.76rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #6b6560;
+          }
+          </style>
 execute:
   warning: false
   echo: true
