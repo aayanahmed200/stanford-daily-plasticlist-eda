@@ -1,42 +1,62 @@
-# Stanford Daily: PlasticList EDA
+# PlasticList Exploratory Data Analysis
 
-**Live:** [aayanahmed200.github.io/stanford-daily-plasticlist-eda](https://aayanahmed200.github.io/stanford-daily-plasticlist-eda/)
+> An exploratory analysis of 618 PlasticList lab samples across 236 Bay Area food and beverage products, including samples collected at Stanford dining locations.
 
-**Series:** [The Price of Prestige](https://aayanahmed200.github.io/stanford-daily-price-of-prestige/) · [Blotter fiction](https://aayanahmed200.github.io/stanford-daily-blotter-fiction/) · [ICE pipeline](https://aayanahmed200.github.io/stanford-daily-biglocal-ice-pipeline/)
+**Live report:** [aayanahmed200.github.io/stanford-daily-plasticlist-eda](https://aayanahmed200.github.io/stanford-daily-plasticlist-eda/)
 
-[![Python](https://img.shields.io/badge/python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/) [![Pandas](https://img.shields.io/badge/pandas-150458?style=for-the-badge&logo=pandas&logoColor=white)](https://pandas.pydata.org/) [![Quarto](https://img.shields.io/badge/quarto-75AADB?style=for-the-badge&logo=quarto&logoColor=white)](https://quarto.org/) [![GitHub Actions](https://img.shields.io/badge/github%20actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/features/actions)
+**Stanford Daily series:** [The Price of Prestige](https://aayanahmed200.github.io/stanford-daily-price-of-prestige/) · [Blotter Fiction](https://aayanahmed200.github.io/stanford-daily-blotter-fiction/) · [ICE Extraction Pipeline](https://aayanahmed200.github.io/stanford-daily-biglocal-ice-pipeline/)
 
-Exploratory analysis of 618 PlasticList lab samples across 236 Bay Area food and beverage products, including samples from Stanford dining locations.
+[![Python](https://img.shields.io/badge/python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/) [![Pandas](https://img.shields.io/badge/pandas-150458?style=for-the-badge&logo=pandas&logoColor=white)](https://pandas.pydata.org/) [![Matplotlib](https://img.shields.io/badge/matplotlib-11557C?style=for-the-badge&logo=matplotlib&logoColor=white)](https://matplotlib.org/) [![Quarto](https://img.shields.io/badge/quarto-75AADB?style=for-the-badge&logo=quarto&logoColor=white)](https://quarto.org/) [![GitHub Actions](https://img.shields.io/badge/github%20actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/features/actions)
 
 ## Overview
 
-The analysis examines measured phthalates and bisphenols, compares product groups, and checks how repeat samples from the same product vary. It is written as a single rendered notebook, so every figure can be traced back to the code that produced it.
+This report explores PlasticList's measurements of phthalates and bisphenols in food and beverage products. It compares chemical measurements across product groups, looks at samples collected at Stanford dining locations, and examines how repeated samples of the same product vary.
 
-## How it was made
+The analysis is descriptive. Its purpose is to explore the dataset and its measurement patterns, not to rank products as safe or unsafe or estimate an individual's health exposure.
 
-The samples come from the PlasticList dataset, committed as `data/plastic.tsv`. The analysis is one Quarto notebook, `analysis.qmd`, written in Python with pandas: it groups the measured chemicals by product category, compares detections against the lab's quantification limit, and checks repeat samples from the same product for spread. Rendering it produces a single self-contained HTML file, so the charts travel with the code that made them.
+## Key findings covered
 
-The published page wraps the full report in a short landing summary and uses the same stylesheet as the other three pages in the series. A GitHub Actions workflow builds `site/` and deploys it to GitHub Pages on every push to `main`.
+- 618 samples covering 236 unique products and 18 measured chemicals.
+- DEHP and DEHT were detected above the lab's limit of quantification in a majority of samples.
+- Detection rates and measured concentrations vary substantially by chemical and product group.
+- Repeated samples of the same product can differ, which is important when interpreting individual measurements.
+- Stanford dining samples are included as a small subset of the larger dataset.
 
-## Highlights
+## Implementation
 
-- DEHP and DEHT were detected above the lab's quantification limit in a majority of samples.
-- Most other measured chemicals were non-detects in 85-100% of samples.
-- Processed and fast foods tended to show higher DEHP measurements than less-processed groups in this dataset.
-- A Stanford dining-hall meal averaged about 12,000 ng of DEHP per serving across three samples.
-- Repeat measurements had a median difference of about 13%; some products differed by 40% or more.
+The source notebook is `analysis.qmd`, written in Python with pandas and Matplotlib. The source data is bundled in `data/plastic.tsv` so the report does not depend on an external download URL at render time. Quarto renders the notebook into a self-contained HTML report; the published series page provides a landing summary and links to the full analysis.
 
-## Repository contents
+The notebook flags an important data-cleaning caveat: values reported below the limit of quantification are strings such as `<3550`. The current digit-extraction step converts those strings to the numeric threshold, which treats non-detects as threshold-level values and can overstate detection rates and apparent concentrations.
 
-- `analysis.qmd` — the source notebook: code, figures and prose.
-- `analysis.html` — the rendered, self-contained report.
-- `site/` — the published page: a landing summary, the full report, and the shared stylesheet.
-- `data/plastic.tsv` — the dataset the analysis reads.
+## Repository structure
 
-## Notes and limitations
+- `analysis.qmd` — source notebook containing the analysis, code, figures, and narrative.
+- `analysis.html` — rendered, self-contained report.
+- `data/plastic.tsv` — source dataset used by the notebook.
+- `site/` — published landing page, full report copy, and shared Stanford Daily series stylesheet.
+- `requirements.txt` — Python dependencies for the analysis.
 
-The findings describe the 618 samples in this dataset, not every product or serving. The analysis is observational and should not be treated as a direct measure of an individual's exposure or health risk. The published site reads `site/index.html`, `site/analysis.html` and `site/series.css` directly, so a re-render has to be copied into `site/` before it goes live.
+## Run locally
+
+1. Install Python dependencies:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+2. Install the [Quarto CLI](https://quarto.org/docs/get-started/).
+3. Render the notebook:
+
+```bash
+quarto render analysis.qmd
+```
+
+The published site uses the report copy in `site/analysis.html`; copy the newly rendered `analysis.html` into `site/` before publishing if you want the site to show the updated report.
+
+## Status and limitations
+
+The findings describe the samples in this dataset, not all products or servings. The source is a volunteer-run testing project with a limited sample and no peer review. Below-LOQ values are currently represented by their numeric thresholds for parts of the analysis, which affects detection and concentration summaries. These results should not be interpreted as direct exposure estimates or health conclusions.
 
 ## License
 
-MIT — see `LICENSE`.
+MIT. See [LICENSE](LICENSE).
