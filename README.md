@@ -14,7 +14,7 @@ This report explores PlasticList's measurements of phthalates and bisphenols in 
 
 The analysis is descriptive. Its purpose is to explore the dataset and its measurement patterns, not to rank products as safe or unsafe or estimate an individual's health exposure.
 
-## Key findings covered
+## Highlights
 
 - 618 samples covering 236 unique products and 18 measured chemicals.
 - DEHP and DEHT were detected above the lab's limit of quantification in a majority of samples.
