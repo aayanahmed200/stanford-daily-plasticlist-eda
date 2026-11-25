@@ -36,26 +36,9 @@ The notebook flags an important data-cleaning caveat: values reported below the 
 - `site/` — published landing page, full report copy, and shared Stanford Daily series stylesheet.
 - `requirements.txt` — Python dependencies for the analysis.
 
-## Run locally
-
-1. Install Python dependencies:
-
-```bash
-python -m pip install -r requirements.txt
-```
-
-2. Install the [Quarto CLI](https://quarto.org/docs/get-started/).
-3. Render the notebook:
-
-```bash
-quarto render analysis.qmd
-```
-
-The published site uses the report copy in `site/analysis.html`; copy the newly rendered `analysis.html` into `site/` before publishing if you want the site to show the updated report.
-
 ## Status and limitations
 
-The findings describe the samples in this dataset, not all products or servings. The source is a volunteer-run testing project with a limited sample and no peer review. Below-LOQ values are currently represented by their numeric thresholds for parts of the analysis, which affects detection and concentration summaries. These results should not be interpreted as direct exposure estimates or health conclusions.
+The findings describe the samples in this dataset, not all products or servings. The source is a volunteer-run testing project with a limited sample and no peer review. Below-LOQ values are currently represented by their numeric thresholds for parts of the analysis, which affects detection and concentration summaries. These results should not be interpreted as direct exposure estimates or health conclusions. The published site carries its own copy of the report at `site/analysis.html`, separate from the rendered `analysis.html` at the repository root, so a re-render only reaches the site once that copy is updated.
 
 ## License
 
